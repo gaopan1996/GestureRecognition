@@ -26,7 +26,7 @@ cv2.createTrackbar('blur', 'Blur Value',11,179,nothing)
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 blur_val = 10
 
-data = open("output.dat", "rw+")
+data = open("output.dat", "w")
 cycle = 1
 while(True):
     data.write("Cycle " + str(cycle) + "\n")
