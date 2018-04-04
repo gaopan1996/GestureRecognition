@@ -7,10 +7,12 @@ import argparse
 def nothing(x):
     pass
 
-cv2.namedWindow('Blur Value')
-cv2.createTrackbar('blur', 'Blur Value',11,179,nothing)
+cv2.namedWindow('Variable Values')
+cv2.createTrackbar('blur', 'Variable Values',11,179,nothing)
+cv2.createTrackbar('wait', 'Variable Values', 1, 100, nothing)
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 blur_val = 10
+wait = 25
 
 data = open("output.dat", "w")
 open('data.json','w')
@@ -398,7 +400,9 @@ else:
         print("Elapsed Time: " + str(elapsed_time) + "\n")
         cycle = cycle + 1
         #close the output video by pressing 'ESC'
-        k = cv2.waitKey(25) & 0xFF
+        wait = cv2.getTrackbarPos('wait','Variable Values')
+        print wait
+        k = cv2.waitKey(wait) & 0xFF
         if k == 27:
             break
 
