@@ -25,7 +25,7 @@ options = parser.parse_args()
 if options.file:
    filename = options.file
 
-print filename
+print (filename)
 if filename is None:
     cap = cv2.VideoCapture(0)
     #Set frame size and initial values
@@ -401,7 +401,7 @@ else:
         cycle = cycle + 1
         #close the output video by pressing 'ESC'
         wait = cv2.getTrackbarPos('wait','Variable Values')
-        print wait
+        print (wait)
         k = cv2.waitKey(wait) & 0xFF
         if k == 27:
             break
