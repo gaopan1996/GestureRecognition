@@ -25,7 +25,6 @@ options = parser.parse_args()
 if options.file:
    filename = options.file
 
-print filename
 if filename is None:
     cap = cv2.VideoCapture(0)
     #Set frame size and initial values
@@ -48,7 +47,7 @@ if filename is None:
             cv2.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
             roi_gray = gray[y:y+h, x:x+w]
             roi_color = frame[y:y+h, x:x+w]
-            center_face = (x+w/2,y+h/2)
+            center_face = (int(x+w/2),int(y+h/2))
             center_face_str = np.array(map(str, center_face))
             #data.write("Face center: ("+ center_face_str[0]+", "+center_face_str[1]+")\n")
             #Draw center of face
@@ -241,13 +240,13 @@ else:
             cv2.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
             roi_gray = gray[y:y+h, x:x+w]
             roi_color = frame[y:y+h, x:x+w]
-            center_face = (x+w/2,y+h/2)
+            center_face = (int(x+w/2),int(y+h/2))
             center_face_str = np.array(map(str, center_face))
             #data.write("Face center: ("+ center_face_str[0]+", "+center_face_str[1]+")\n")
             #Draw center of face
             cv2.circle(frame, center_face, 7, [100,0,255], 2)
             font = cv2.FONT_HERSHEY_PLAIN
-            cv2.putText(frame, 'Face Center', (x+w/2,y+h/2), font, 2, (255,255,255), 2)
+            cv2.putText(frame, 'Face Center', center_face, font, 2, (255,255,255), 2)
     #        face_json = {'face_center_coordinate':[ x+w/2, y+h/2 ]}
             jsonobj[str(cycle)]['face_center_coordinate'].append("("+str(center_face[0])+ ", "+str(center_face[1])+")")
     #    jsonobj[str(cycle)]['face_center_coordinate'].append("("+center_face_str[0]+ ", "+center_face_str[1]+")")
@@ -405,7 +404,6 @@ else:
         cycle = cycle + 1
         #close the output video by pressing 'ESC'
         wait = cv2.getTrackbarPos('wait','Variable Values')
-        print wait
         k = cv2.waitKey(wait) & 0xFF
         if k == 27:
             break
