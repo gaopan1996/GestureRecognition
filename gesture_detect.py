@@ -38,6 +38,7 @@ if filename is None:
         jsonobj[str(cycle)] = { 'face_center_coordinate':[], 'hand_center_coordinate': [], 'finger_points_coordinate': [], 'finger_distance_from_center_palm': [], 'hull_coordinates':[], 'hull_defects_coordinates':[], 'face_bounding_rectangle': [], 'contour_coordinates': [] }
         #Capture frames from the camera
         ret, frame = cap.read()
+        hand = frame
         #Use Haar Cascade to detect faces
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces = face_cascade.detectMultiScale(gray, 1.3, 5)
@@ -203,6 +204,7 @@ if filename is None:
         
         ##### Show final image ########
         cv2.imshow('Final',frame)
+        cv2.imshow('Hand', hand[x:x+w,y:y+h])
         elapsed_time = time.time() - start_time 
         json.dump(jsonobj, codecs.open('data.json', 'a', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
         #data.write("Elapsed Time: " + str(elapsed_time) + "\n")
@@ -227,6 +229,7 @@ else:
         jsonobj[str(cycle)] = { 'face_center_coordinate':[], 'hand_center_coordinate': [], 'finger_points_coordinate': [], 'finger_distance_from_center_palm': [], 'hull_coordinates':[], 'hull_defects_coordinates':[], 'face_bounding_rectangle': [], 'contour_coordinates': [] }
         #Capture frames from the camera
         ret, frame = cap.read()
+        hand = frame
         if ret == False: 
             continue
         #Use Haar Cascade to detect faces
@@ -394,6 +397,7 @@ else:
         
         ##### Show final image ########
         cv2.imshow('Final',frame)
+        cv2.imshow('Hand', hand[x:x+w,y:y+h])
         elapsed_time = time.time() - start_time 
         json.dump(jsonobj, codecs.open('data.json', 'a', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
         #data.write("Elapsed Time: " + str(elapsed_time) + "\n")
