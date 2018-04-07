@@ -10,9 +10,11 @@ def nothing(x):
 cv2.namedWindow('Variable Values')
 cv2.createTrackbar('blur', 'Variable Values',11,179,nothing)
 cv2.createTrackbar('wait', 'Variable Values', 1, 100, nothing)
+cv2.createTrackbar('mask', 'Variable Values', 20, 255, nothing)
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 blur_val = 10
 wait = 25
+mask_hsv = 20
 
 data = open("output.dat", "w")
 open('data.json','w')
@@ -53,19 +55,21 @@ if filename is None:
             #Draw center of face
             cv2.circle(frame, center_face, 7, [100,0,255], 2)
             font = cv2.FONT_HERSHEY_PLAIN
-            cv2.putText(frame, 'Face Center', (x+w/2,y+h/2), font, 2, (255,255,255), 2)
+            cv2.putText(frame, 'Face Center', center_face , font, 2, (255,255,255), 2)
             #face_json = {'face_center_coordinate':[ x+w/2, y+h/2 ]}
             jsonobj[str(cycle)]['face_center_coordinate'].append("("+str(center_face[0])+ ", "+str(center_face[1])+")")
         #jsonobj[str(cycle)]['face_center_coordinate'].append("("+center_face_str[0]+ ", "+center_face_str[1]+")")
         #file_path = "path1.json" ## your path variable
         #json.dump(face_json, codecs.open(file_path, 'a', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
-        #blur_val = cv2.getTrackbarPos('blur', 'Blur Value')   
+        blur_val = cv2.getTrackbarPos('blur', 'Variable Values')
         #Blur the image to remove noised
         blur = cv2.blur(frame,(blur_val,blur_val))
         #blur = cv2.GaussianBlur(frame, (blur_val,blur_val), 0)
         hsv = cv2.cvtColor(blur,cv2.COLOR_BGR2HSV)
+        cv2.imshow("hsv", hsv)
         #Mask blurred image with Hue values of 0-20.
-        mask = cv2.inRange(hsv,np.array([0,50,50]),np.array([20,255,255]))
+        mask_hsv = cv2.getTrackbarPos('mask','Variable Values')
+        mask = cv2.inRange(hsv,np.array([0,50,50]),np.array([mask_hsv,255,255]))
         
         #Kernel matrices for morphological transformation    
         kernel_square = np.ones((11,11),np.uint8)
@@ -83,7 +87,7 @@ if filename is None:
         dilation3 = cv2.dilate(filtered,kernel_ellipse,iterations = 1)
         median = cv2.medianBlur(dilation2,5)
         ret,thresh = cv2.threshold(median,127,255,0)
-        
+        cv2.imshow("test",thresh)
         #Find contours of the filtered frame
         _, contours, _ = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)   
         
@@ -96,8 +100,10 @@ if filename is None:
             if(area > max_area):
                 max_area = area
                 i = n  
-                
-        cnts = contours[i]
+        if len(contours) > 0:        
+            cnts = contours[i]
+        else:
+            continue
         for i in range(cnts.shape[0]):
             #coord = tuple(cnts[i][0])
             jsonobj[str(cycle)]['contour_coordinates'].append("(" + str(cnts[i][0][0]) + ", " + str(cnts[i][0][1]) + ")")
@@ -197,13 +203,13 @@ if filename is None:
         jsonobj[str(cycle)]["face_bounding_rectangle"].append("(" + str(x) + "," + str(y) + ")")
         jsonobj[str(cycle)]["face_bounding_rectangle"].append("(" + str(x+w) + "," +str(y) +")")
         jsonobj[str(cycle)]["face_bounding_rectangle"].append("(" + str(x) + "," + str(y+h)+")")
-        jsonobj[str(cycle)]["face_bounding_rectangle"].append("(" + str(x+w) + ","+str(y+h)+")\n")
+        jsonobj[str(cycle)]["face_bounding_rectangle"].append("(" + str(x+w) + ","+str(y+h)+")")
         cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
         cv2.drawContours(frame,[hull],-1,(255,255,255),2)
         
         ##### Show final image ########
         cv2.imshow('Final',frame)
-        cv2.imshow('Hand', hand[x:x+w,y:y+h])
+#        cv2.imshow('Hand', hand[x:x+w,y:y+h])
         elapsed_time = time.time() - start_time 
         json.dump(jsonobj, codecs.open('data.json', 'a', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
         #data.write("Elapsed Time: " + str(elapsed_time) + "\n")
@@ -228,9 +234,9 @@ else:
         jsonobj[str(cycle)] = { 'face_center_coordinate':[], 'hand_center_coordinate': [], 'finger_points_coordinate': [], 'finger_distance_from_center_palm': [], 'hull_coordinates':[], 'hull_defects_coordinates':[], 'face_bounding_rectangle': [], 'contour_coordinates': [] }
         #Capture frames from the camera
         ret, frame = cap.read()
+        if not ret:
+           break
         hand = frame
-        if ret == False: 
-            continue
         #Use Haar Cascade to detect faces
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces = face_cascade.detectMultiScale(gray, 1.3, 5)
@@ -252,13 +258,15 @@ else:
     #    jsonobj[str(cycle)]['face_center_coordinate'].append("("+center_face_str[0]+ ", "+center_face_str[1]+")")
     #    file_path = "path1.json" ## your path variable
     #    json.dump(face_json, codecs.open(file_path, 'a', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
-        #blur_val = cv2.getTrackbarPos('blur', 'Blur Value')   
+        blur_val = cv2.getTrackbarPos('blur', 'Variable Values')   
         #Blur the image to remove noised
         blur = cv2.blur(frame,(blur_val,blur_val))
     #   blur = cv2.GaussianBlur(frame, (blur_val,blur_val), 0)
         hsv = cv2.cvtColor(blur,cv2.COLOR_BGR2HSV)
+        cv2.imshow("hsv", hsv)
         #Mask blurred image with Hue values of 0-20.
-        mask = cv2.inRange(hsv,np.array([0,50,50]),np.array([20,255,255]))
+        mask_hsv = cv2.getTrackbarPos('mask','Variable Values')
+        mask = cv2.inRange(hsv,np.array([0,50,50]),np.array([mask_hsv,255,255]))
         
         #Kernel matrices for morphological transformation    
         kernel_square = np.ones((11,11),np.uint8)
@@ -390,13 +398,13 @@ else:
         jsonobj[str(cycle)]["face_bounding_rectangle"].append("(" + str(x) + "," + str(y) + ")")
         jsonobj[str(cycle)]["face_bounding_rectangle"].append("(" + str(x+w) + "," +str(y) +")")
         jsonobj[str(cycle)]["face_bounding_rectangle"].append("(" + str(x) + "," + str(y+h)+")")
-        jsonobj[str(cycle)]["face_bounding_rectangle"].append("(" + str(x+w) + ","+str(y+h)+")\n")
+        jsonobj[str(cycle)]["face_bounding_rectangle"].append("(" + str(x+w) + ","+str(y+h)+")")
         cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
         cv2.drawContours(frame,[hull],-1,(255,255,255),2)
         
         ##### Show final image ########
         cv2.imshow('Final',frame)
-        cv2.imshow('Hand', hand[x:x+w,y:y+h])
+        cv2.imshow('Hand', hand[y:y+h, x:x+w])
         elapsed_time = time.time() - start_time 
         json.dump(jsonobj, codecs.open('data.json', 'a', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
         #data.write("Elapsed Time: " + str(elapsed_time) + "\n")
