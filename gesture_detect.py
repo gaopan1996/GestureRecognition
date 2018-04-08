@@ -3,23 +3,29 @@ import numpy as np
 import codecs, json
 import time
 import argparse
-
+import os
 def nothing(x):
     pass
 
 cv2.namedWindow('Variable Values')
 cv2.createTrackbar('blur', 'Variable Values',11,179,nothing)
-cv2.createTrackbar('wait', 'Variable Values', 1, 100, nothing)
+cv2.createTrackbar('wait', 'Variable Values', 25, 100, nothing)
 cv2.createTrackbar('mask', 'Variable Values', 20, 255, nothing)
+cv2.createTrackbar('mask_lower', 'Variable Values',0, 20, nothing)
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 blur_val = 10
 wait = 25
 mask_hsv = 20
+mask_lower = 0
+
+if not os.path.exists("videos"):
+    os.makedirs("videos")
+
 
 data = open("output.dat", "w")
 open('data.json','w')
 cycle = 1
-
+calibrated_x = calibrated_y = calibrated_h = calibrated_w = 0
 parser = argparse.ArgumentParser()
 filename = None
 parser.add_argument('-f', '--file', dest="file", default="")
@@ -69,7 +75,8 @@ if filename is None:
         cv2.imshow("hsv", hsv)
         #Mask blurred image with Hue values of 0-20.
         mask_hsv = cv2.getTrackbarPos('mask','Variable Values')
-        mask = cv2.inRange(hsv,np.array([0,50,50]),np.array([mask_hsv,255,255]))
+        mask_lower = cv2.getTrackbarPos('mask_lower','Variable Values')
+        mask = cv2.inRange(hsv,np.array([mask_lower,50,50]),np.array([mask_hsv,255,255]))
         
         #Kernel matrices for morphological transformation    
         kernel_square = np.ones((11,11),np.uint8)
@@ -199,6 +206,11 @@ if filename is None:
         #data.write("\n")
         #Print bounding rectangle
         x,y,w,h = cv2.boundingRect(cnts)
+        if cycle == 1:
+            calibrated_x = x
+            calibrated_y = y
+            calibrated_h = h
+            calibrated_w = w
         #data.write("Bounding Rectangle: (" + str(x) + "," + str(y) + ") (" + str(x+w) + "," +str(y) +") (" + str(x) + "," + str(y+h) + ") (" + str(x+w) + ","+str(y+h)+")\n")
         jsonobj[str(cycle)]["face_bounding_rectangle"].append("(" + str(x) + "," + str(y) + ")")
         jsonobj[str(cycle)]["face_bounding_rectangle"].append("(" + str(x+w) + "," +str(y) +")")
@@ -209,6 +221,8 @@ if filename is None:
         
         ##### Show final image ########
         cv2.imshow('Final',frame)
+        cv2.imshow('Hand', hand[calibrated_y:calibrated_y+calibrated_h, calibrated_x:calibrated_x+calibrated_w])
+        cv2.imshow('Hand_Mask', mask[calibrated_y:calibrated_y+calibrated_h, calibrated_x:calibrated_x+calibrated_w])
 #        cv2.imshow('Hand', hand[x:x+w,y:y+h])
         elapsed_time = time.time() - start_time 
         json.dump(jsonobj, codecs.open('data.json', 'a', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
@@ -220,10 +234,12 @@ if filename is None:
         if k == 27:
             break
 else:
+    #fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+    #out = cv2.VideoWriter("videos/out.avi",fourcc, 20.0, (720,480))
     cap = cv2.VideoCapture(filename)
     #Set frame size and initial values
-    cap.set(3, 1280)
-    cap.set(4, 1024)
+    cap.set(3, 720)
+    cap.set(4, 480)
     
     
     
@@ -284,6 +300,7 @@ else:
         dilation3 = cv2.dilate(filtered,kernel_ellipse,iterations = 1)
         median = cv2.medianBlur(dilation2,5)
         ret,thresh = cv2.threshold(median,127,255,0)
+        cv2.imshow("test",thresh)
         
         #Find contours of the filtered frame
         _, contours, _ = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)   
@@ -394,6 +411,11 @@ else:
         #data.write("\n")
         #Print bounding rectangle
         x,y,w,h = cv2.boundingRect(cnts)
+        if cycle == 1:
+            calibrated_x = x
+            calibrated_y = y
+            calibrated_h = h
+            calibrated_w = w
         #data.write("Bounding Rectangle: (" + str(x) + "," + str(y) + ") (" + str(x+w) + "," +str(y) +") (" + str(x) + "," + str(y+h) + ") (" + str(x+w) + ","+str(y+h)+")\n")
         jsonobj[str(cycle)]["face_bounding_rectangle"].append("(" + str(x) + "," + str(y) + ")")
         jsonobj[str(cycle)]["face_bounding_rectangle"].append("(" + str(x+w) + "," +str(y) +")")
@@ -404,9 +426,20 @@ else:
         
         ##### Show final image ########
         cv2.imshow('Final',frame)
-        cv2.imshow('Hand', hand[y:y+h, x:x+w])
+        #cv2.imshow('Hand', hand[calibrated_y:calibrated_y+calibrated_h, calibrated_x:calibrated_x+calibrated_w])
+        filename_exploded = filename.split(".")[0].split("/")
+        outfilename = filename_exploded[len(filename_exploded)-1]
+        #print(mask[calibrated_y:calibrated_y+510, calibrated_x:calibrated_x+310].shape)
+#        out.write(mask)
+        cv2.imshow('Hand_Mask', mask[calibrated_y:calibrated_y+510, calibrated_x:calibrated_x+310])
+        if not os.path.exists("videos/"+outfilename):
+            os.makedirs("videos/"+outfilename)
+        cv2.imwrite("videos/"+outfilename+"/frame"+str(cycle)+".jpg",  mask[calibrated_y:calibrated_y+510, calibrated_x:calibrated_x+310])
+        handjson = {'frame'+str(cycle): mask[calibrated_y:calibrated_y+510, calibrated_x:calibrated_x+310].tolist()}
+        #cv2.imshow('Hand_Mask', mask[calibrated_y:calibrated_y+calibrated_h, calibrated_x:calibrated_x+calibrated_w])
         elapsed_time = time.time() - start_time 
         json.dump(jsonobj, codecs.open('data.json', 'a', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
+        json.dump(handjson, codecs.open('hand.json', 'a', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
         #data.write("Elapsed Time: " + str(elapsed_time) + "\n")
         print("Elapsed Time: " + str(elapsed_time) + "\n")
         cycle = cycle + 1
@@ -415,7 +448,14 @@ else:
         k = cv2.waitKey(wait) & 0xFF
         if k == 27:
             break
-
+        if k == ord('p'):
+            while True:
+                k2 = cv2.waitKey(1) or 0xff
+                cv2.imshow('Final', frame)
+                if k2 == ord('p'):
+                    break
+            cv2.imshow('Final', frame)
+           
 
 cap.release()
 cv2.destroyAllWindows()
