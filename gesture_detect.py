@@ -11,7 +11,7 @@ cv2.namedWindow('Variable Values')
 cv2.createTrackbar('blur', 'Variable Values',11,179,nothing)
 cv2.createTrackbar('wait', 'Variable Values', 25, 100, nothing)
 cv2.createTrackbar('mask', 'Variable Values', 20, 255, nothing)
-cv2.createTrackbar('mask_lower', 'Variable Values',0, 20, nothing)
+cv2.createTrackbar('mask_lower', 'Variable Values',0, 255, nothing)
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 blur_val = 10
 wait = 25
@@ -282,7 +282,8 @@ else:
         cv2.imshow("hsv", hsv)
         #Mask blurred image with Hue values of 0-20.
         mask_hsv = cv2.getTrackbarPos('mask','Variable Values')
-        mask = cv2.inRange(hsv,np.array([0,50,50]),np.array([mask_hsv,255,255]))
+        lower_mask = cv2.getTrackbarPos('mask_lower','Variable Values')
+        mask = cv2.inRange(hsv,np.array([lower_mask,50,50]),np.array([mask_hsv,255,255]))
         
         #Kernel matrices for morphological transformation    
         kernel_square = np.ones((11,11),np.uint8)
@@ -315,7 +316,11 @@ else:
                 max_area = area
                 i = n  
                 
-        cnts = contours[i]
+        if len(contours) > 0:        
+            cnts = contours[i]
+        else:
+            continue
+
         for i in range(cnts.shape[0]):
     #        coord = tuple(cnts[i][0])
             jsonobj[str(cycle)]['contour_coordinates'].append("(" + str(cnts[i][0][0]) + ", " + str(cnts[i][0][1]) + ")")
@@ -431,10 +436,11 @@ else:
         outfilename = filename_exploded[len(filename_exploded)-1]
         #print(mask[calibrated_y:calibrated_y+510, calibrated_x:calibrated_x+310].shape)
 #        out.write(mask)
-        cv2.imshow('Hand_Mask', mask[calibrated_y:calibrated_y+510, calibrated_x:calibrated_x+310])
+        cv2.imshow('Hand_Mask', mask[calibrated_y:calibrated_y+calibrated_h, calibrated_x:calibrated_x+calibrated_w])
+        #cv2.imshow('Hand_Mask', mask[calibrated_y:calibrated_y+510, calibrated_x:calibrated_x+310])
         if not os.path.exists("videos/"+outfilename):
             os.makedirs("videos/"+outfilename)
-        cv2.imwrite("videos/"+outfilename+"/frame"+str(cycle)+".jpg",  mask[calibrated_y:calibrated_y+510, calibrated_x:calibrated_x+310])
+        cv2.imwrite("videos/"+outfilename+"/frame"+str(cycle)+".jpg",  mask[calibrated_y:calibrated_y+640, calibrated_x:calibrated_x+360])
         handjson = {'frame'+str(cycle): mask[calibrated_y:calibrated_y+510, calibrated_x:calibrated_x+310].tolist()}
         #cv2.imshow('Hand_Mask', mask[calibrated_y:calibrated_y+calibrated_h, calibrated_x:calibrated_x+calibrated_w])
         elapsed_time = time.time() - start_time 
