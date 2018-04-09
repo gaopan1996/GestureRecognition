@@ -28,7 +28,7 @@ def convert_all_keras():
             #print(img_array.shape)
             array_of_video_frames = np.append(array_of_video_frames,img_array)
             
-    array_of_video_frames = np.reshape(array_of_video_frames, (30,20,640,360))
+    array_of_video_frames = np.reshape(array_of_video_frames, (30,20,640,360,1))
     return array_of_video_frames
 
 convert_all_keras()
