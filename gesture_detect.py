@@ -237,11 +237,6 @@ else:
     #fourcc = cv2.VideoWriter_fourcc(*'DIVX')
     #out = cv2.VideoWriter("videos/out.avi",fourcc, 20.0, (720,480))
     cap = cv2.VideoCapture(filename)
-    #Set frame size and initial values
-    cap.set(3, 720)
-    cap.set(4, 480)
-    
-    
     
     while(cap.isOpened()):
         start_time = time.time()
@@ -435,17 +430,20 @@ else:
         filename_exploded = filename.split(".")[0].split("/")
         outfilename = filename_exploded[len(filename_exploded)-1]
         #print(mask[calibrated_y:calibrated_y+510, calibrated_x:calibrated_x+310].shape)
-#        out.write(mask)
-        cv2.imshow('Hand_Mask', mask[calibrated_y:calibrated_y+calibrated_h, calibrated_x:calibrated_x+calibrated_w])
+        #out.write(mask)
+        cv2.imshow('Hand_Mask', mask[calibrated_y:calibrated_y+640, calibrated_x:calibrated_x+360])
         #cv2.imshow('Hand_Mask', mask[calibrated_y:calibrated_y+510, calibrated_x:calibrated_x+310])
         if not os.path.exists("videos/"+outfilename):
             os.makedirs("videos/"+outfilename)
+        if calibrated_y+640 > mask.shape[0]:
+            calibrated_y = mask.shape[0]-640 
         cv2.imwrite("videos/"+outfilename+"/frame"+str(cycle)+".jpg",  mask[calibrated_y:calibrated_y+640, calibrated_x:calibrated_x+360])
-        handjson = {'frame'+str(cycle): mask[calibrated_y:calibrated_y+510, calibrated_x:calibrated_x+310].tolist()}
+        #print(mask.shape)
+        #handjson = {'frame'+str(cycle): mask[calibrated_y:calibrated_y+510, calibrated_x:calibrated_x+310].tolist()}
         #cv2.imshow('Hand_Mask', mask[calibrated_y:calibrated_y+calibrated_h, calibrated_x:calibrated_x+calibrated_w])
         elapsed_time = time.time() - start_time 
-        json.dump(jsonobj, codecs.open('data.json', 'a', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
-        json.dump(handjson, codecs.open('hand.json', 'a', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
+        #json.dump(jsonobj, codecs.open('data.json', 'a', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
+        #json.dump(handjson, codecs.open('hand.json', 'a', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
         #data.write("Elapsed Time: " + str(elapsed_time) + "\n")
         print("Elapsed Time: " + str(elapsed_time) + "\n")
         cycle = cycle + 1
