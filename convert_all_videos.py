@@ -1,17 +1,15 @@
 import numpy as np
 import cv2
 import os
-def img_to_array(file):
-    img = cv2.imread(file,-1)
-    return img
+import argparse
+
 classifier = "goodbye"
-goodbye = np.array([])
-for num in range(0,30):
-    for frame in range(0,20):
-        img_array = img_to_array("videos/"+str(classifier)+str(num)+"/frame"+str(frame)+".jpg")
-        print("videos/"+str(classifier)+str(num)+"/frame"+str(frame)+".jpg")
-        np.append(goodbye,img_array)
-np.savetxt('test.txt', goodbye)
-k = cv2.waitKey(0)
-if k == 27:
-    cv2.destroyAllWindows()
+array_of_video_frames = np.array([],int)
+for num in range(1,31):
+    for frame in range(1,21):
+        file = "videos/"+str(classifier)+str(num)+"/frame"+str(frame)+".jpg")
+        img_array = cv2.imread(file,0)
+        array_of_video_frames = np.append(array_of_video_frames,img_array)
+        h,w = img_array.shape
+        
+array_of_video_frames = np.reshape(array_of_video_frames, (30,20,640,360))
