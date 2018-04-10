@@ -24,6 +24,7 @@ def convert_all_keras():
     number_of_videos = 30
     for classifier in classifiers:
         for num in range(1,number_of_videos+1):
+            array_of_classifiers = np.append(array_of_classifiers,classifier)
             for frame in range(1,21):
                 file = "videos/"+classifier+str(num)+"/frame"+str(frame)+".jpg"
                 try:
@@ -34,8 +35,7 @@ def convert_all_keras():
                 pimg.close()
                 #print(img_array.shape)
                 array_of_video_frames = np.append(array_of_video_frames,img_array)
-                array_of_classifiers = np.append(array_of_classifiers,classifier)
-#    array_of_classifiers = np.reshape(array_of_classifiers, (
+    #array_of_classifiers = np.reshape(array_of_classifiers, (
     array_of_video_frames = np.reshape(array_of_video_frames, (number_of_videos,20,640,360,1))
-    array_of_classifiers = np.reshape(array_of_classifiers, (number_of_videos, 20))
+    #array_of_classifiers = np.reshape(array_of_classifiers, (number_of_videos))
     return array_of_video_frames, array_of_classifiers
